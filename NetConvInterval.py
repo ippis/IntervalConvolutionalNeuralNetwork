@@ -65,15 +65,16 @@ class ConvNetInterval(object):
 						newImage.append(pixels[i])
 
 					#adiciona a imagem ao conjunto de dados, representando dessa maneira uma imagem greyscale
-					x.append(newImage)
+					aux = []
+					aux.append(newImage)
+					x.append(aux)
 
 			print str(classes)+": "+folderName+" ... OK"
 			totClasses = classes
 			totImages = len(x)
 			print " "
 			print "... load dataset completed"
-			print x[0]
-			print len(x[0])
+
 
 		except ValueError:
 			print "now you should have two png files"
@@ -87,19 +88,26 @@ class ConvNetInterval(object):
 		filterDimension = int((len(filter)**(1.0/2.0)))
 
 		value = 0.0
-		#Para criar um feature map exatamente do valor correto tanto i quanto j, so iram variar para as posicoes que estarao criando
-		for i in xrange(0,(h2)):
-			for j in xrange(0,(w2)):
-				value = 0.0
-				#Realiza a convolucao do featuremap com o filtro, compensando pois ambos sao declarados como listas
-				for k in xrange(0,filterDimension):
+		aux = []
+		for fil in xrange(0,len(filter)):
+			#Serve para variar entre os feature maps de uma imagem
+			for indexFeatureMap in xrange(0,len(x)):
+				#Para criar um feature map exatamente do valor correto tanto i quanto j, so iram variar para as posicoes que estarao criando
+				for i in xrange(0,(h2)):
+					for j in xrange(0,(w2)):
+						value = 0.0
+						#Realiza a convolucao do featuremap com o filtro, compensando pois ambos sao declarados como listas
+						for k in xrange(0,filterDimension):
 
-					for r in xrange(0,filterDimension):
-						value+= x[j + r+(i*w2)+(k*w1)] * filter[k*filterDimension]
+							for r in xrange(0,filterDimension):
+								value+= x[indexFeatureMap][j + r+(i*w2)+(k*w1)] * filter[fil][k*filterDimension]
 
-				outputFeatureMap.append(value+bias)
+						outputFeatureMap.append(value+bias[fil])
 
-		return outputFeatureMap
+			aux.append(outputFeatureMap)
+			outputFeatureMap = []
+
+		return aux
 
 	# S indentifica o tamanho do passo para a realizacao da convolucao
 	# p consiste no numero de zeros a ser preenchido na borda da imagem (1, adiciona 2 linhas e 2 colunas com zeros no inicio e no fim)
@@ -110,8 +118,16 @@ class ConvNetInterval(object):
 		qtdNumFilter = f**2.0
 		w2 = self.w
 		h2 = self.h
-		filter = np.random.normal(0,1,qtdNumFilter*totalFilters) #cria o filtro randomicamente com uma distribuicao normal (gaussian)
-		bias = np.random.randint(0,2,1) #varia entre 0 ou 1
+
+		## Responsavel pela criacao dos filtros atraves de uma gaussiana
+		filter = []
+		bias = np.random.randint(0,2,2) #varia entre 0 ou 1
+		for i in xrange(0,totalFilters):
+			aux =[]
+			aux = np.random.normal(0,1,qtdNumFilter) #cria o filtro randomicamente com uma distribuicao normal (gaussian)
+			filter.append(aux)
+		#Fim filtro
+
 
 		x_init = list(x)
 		for i in xrange(0,n_epochs):
@@ -130,14 +146,14 @@ class ConvNetInterval(object):
 				x_aux = []
 
 				#Primeira camada de convolucao
-				x_aux = self.ConvLayer(x_init[k],filter,bias[0],w2,h2,self.w,self.h)
+				x_aux = self.ConvLayer(x_init[k],filter,bias,w2,h2,self.w,self.h)
 
 				#Nova atualizacao de valores
 				w_aux = (w2 - f + 2*p)/s + 1
 				h_aux = (h2 - f + 2*p)/s + 1
 
 				#Segunda camada de convolucao
-				x_new.append(self.ConvLayer(x_aux,filter,bias[0],w_aux,h_aux,w2,h2))
+				x_new.append(self.ConvLayer(x_aux,filter,bias,w_aux,h_aux,w2,h2))
 
 			#Atualiza para a anova epoca
 			w2 = w_aux

@@ -6,10 +6,8 @@ dataset.txt
 file_list.txt
 filter.py
 Five
-mu, sigma = 0, 0.1 # mean and standard deviation
+NetConvInterval.py
 Point
-teste.m
-teste.py
 transformImg.py
 V
 
