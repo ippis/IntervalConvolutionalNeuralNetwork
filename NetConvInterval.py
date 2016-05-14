@@ -4,7 +4,7 @@ import png
 import subprocess
 import os
 import numpy as np
-
+from sklearn.neural_network import MLPClassifier
 
 # DADOS
 x=[]
@@ -28,6 +28,11 @@ class ConvNetInterval(object):
 	def __init__(self):
 		self.w = 0
 		self.h = 0
+	def divList(self,x,y):
+		aux = []
+		for i in range(len(x)):
+			aux.append(x[i]/y)
+		return aux
 	def load(self):
 		try:
 			pathFiles = "dataset.txt"
@@ -109,6 +114,33 @@ class ConvNetInterval(object):
 
 		return aux
 
+
+	def fullConnectedLayer(self,x,y,learnRate):
+		answer = []
+		x_train = []
+		y_train = []
+		x_test =[]
+		y_test = []
+		for i in xrange(len(x)):
+			avarage = [0.0]*len(x[0][0])
+			for j in xrange(len(x[0])):
+
+				#Calcula a media de todos os campos de mesma coordenada de todos os featuremaps refentes a uma imagem
+				for k in xrange(len(x[0][0])):
+					avarage[k]+=x[i][j][k]
+			answer.append(self.divList(avarage,len(x[0])))
+
+			avarage = []
+
+		for i in range(len(x)*learnRate):
+			x_train.append(x[i])
+			y_train.append(y[i])
+
+		for k in range(i+1,len(x)):
+			x_test.append(x[k])
+			y_test.append(y[k])
+
+		return x_train,x_test,y_train,y_test
 	# S indentifica o tamanho do passo para a realizacao da convolucao
 	# p consiste no numero de zeros a ser preenchido na borda da imagem (1, adiciona 2 linhas e 2 colunas com zeros no inicio e no fim)
 	# f indica a dimensao do filtro (lembrando que deve ser quadrada)
@@ -130,6 +162,7 @@ class ConvNetInterval(object):
 
 
 		x_init = list(x)
+		y_init = list(y)
 		for i in xrange(0,n_epochs):
 			#Atualiza para as dimensoes das imagens a serem trabalhadas no momento
 			x_new = []
@@ -159,11 +192,17 @@ class ConvNetInterval(object):
 			w2 = w_aux
 			h2 = h_aux
 			x_init = list(x_new)
-		print(w2)
-		print(h2)
-		print(len(x_init))
+
+		#Inicio da preparacao para MLP
+		print "... full connected layer"
+		x_train, x_test, y_train, y_test = self.fullConnectedLayer(x_init,y_init,learn_rate)
+
+		print "... building training model"
+		clf = MLPClassifier(algorithm='l-bfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+		print "... training"
+		clf.fit(x_train,y_train)
 
 a = ConvNetInterval()
 a.load()
 
-a.evaluateRealConv(1,0.8,2,1,0,1)
+a.evaluateRealConv(1,0.8,5,1,0,1)
