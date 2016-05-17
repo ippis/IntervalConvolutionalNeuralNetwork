@@ -25,7 +25,7 @@ totClasses = -1 #Numero de classes diferentes
 percent_train = 0.8
 ################################################################
 
-class ConvNetReal(object):
+class ConvNetInterval(object):
 	def __init__(self):
 		self.w = 0
 		self.h = 0
@@ -80,7 +80,7 @@ class ConvNetReal(object):
 			print str(classes)+": "+folderName+" ... OK"
 			totClasses = classes
 			totImages = len(self.x)
-			
+
 			combined = zip(self.x, self.y)
 			random.shuffle(combined)
 			self.x = []
@@ -131,33 +131,53 @@ class ConvNetReal(object):
 		y_train = []
 		x_test =[]
 		y_test = []
+		tam = len(x[0])
 		for i in xrange(len(x)):
 			avarage = [0.0]*len(x[0][0])
+			avarage = initInterval(avarage,0.0)
 			for j in xrange(len(x[0])):
-
 				#Calcula a media de todos os campos de mesma coordenada de todos os featuremaps refentes a uma imagem
 				for k in xrange(len(x[0][0])):
-					avarage[k]+=x[i][j][k]
-			answer.append(self.divList(avarage,len(x[0])))
+					avarage[k]+=x[0][j][k]
+
+			x.pop(0)
+
+			answer.append(self.divList(avarage,tam))
 
 			avarage = []
 
-		for i in range(int(len(x)*learnRate)):
-			x_train.append(answer[i])
+		for i in range(int(len(answer)*learnRate)):
+			x_train.append(answer.pop(0))
 			y_train.append(y[i])
 
-		for k in range(i+1,len(x)):
-			x_test.append(answer[k])
+
+
+		for k in range(i+1,(len(x_train)+len(answer))):
 			y_test.append(y[k])
 
-		return x_train,x_test,y_train,y_test
-	
+
+		return x_train,answer,y_train,y_test
+
+	def __calculatePontoMedio(self,x):
+		newValues = []
+		for i in xrange(len(x)):
+			aux = []
+			for k in xrange(len(x[0])):
+				value = 0.0
+				value = (x[0][k].inf + x[0][k].sup)/2.0
+				aux.append(value)
+			x.pop(0)
+			newValues.append(aux)
+
+		return newValues
+
+
 	def __verifyTest(self,predictArray,y):
 		correct = 0
 		incorrect = 0
 		for i in xrange(len(y)):
 			#print(str(predictArray[i])+" "+str(y[i]))
-			
+
 			#Verifica porcentagem de acerto
 			if(predictArray[i]==y[i]):
 				correct+=1
@@ -170,7 +190,7 @@ class ConvNetReal(object):
 	#v2 indica as incorretas
 	def __statistics(self,v1,v2):
 		#Total de gestos no conjunto de testes
-		
+
 		print("########################################")
 		print("# ")
 		print("#     Estatisticas de Treinamento")
@@ -178,11 +198,11 @@ class ConvNetReal(object):
 		print("#  Corretas "+str(v1))
 		print("#  Incorretas "+str(v2))
 		pc = 0.0
-		pc = float(v1)/len(self.x)
+		pc = float(v1)/(v1+v2)
 		print("#  % Predicoes corretas: "+str(pc))
-		
+
 		erro = 0.0
-		erro = float(v2)/len(self.x)
+		erro = float(v2)/(v1+v2)
 		print("#  % Erro: "+str(erro))
 		print("########################################")
 
@@ -222,11 +242,11 @@ class ConvNetReal(object):
 			w2 = (self.w - f + 2*p)/s + 1
 			h2 = (self.h - f + 2*p)/s + 1
 			#como sao imagens em grayscale entao a dimensao e sempre 1
-			for k in xrange(0,len(x_init)):
+			for k in xrange(len(x_init)):
 				x_aux = []
 
 				#Primeira camada de convolucao
-				x_aux = self.ConvLayer(x_init[k],filter,bias,w2,h2,self.w,self.h)
+				x_aux = self.ConvLayer(x_init.pop(0),filter,bias,w2,h2,self.w,self.h)
 
 				#Nova atualizacao de valores
 				w_aux = (w2 - f + 2*p)/s + 1
@@ -241,14 +261,18 @@ class ConvNetReal(object):
 			x_init = list(x_new)
 
 		#Inicio da preparacao para MLP
+		x_new = []
+
 		print "... full connected layer"
 		x_train, x_test, y_train, y_test = self.fullConnectedLayer(x_init,y_init,learn_rate)
-
 		#Free memory
 		x_init = []
 		y_init = []
-		
+
 		self.y = []
+
+		print "... calculate ponto medio training set"
+		x_train = self.__calculatePontoMedio(x_train)
 
 		print "... building training model"
 		clf = MLPClassifier(algorithm='l-bfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
@@ -256,10 +280,11 @@ class ConvNetReal(object):
 		clf.fit(x_train,y_train)
 
 		print "... validation"
+		x_test = self.__calculatePontoMedio(x_test)
 		classPredictndArray = clf.predict(x_test)
 		self.__verifyTest(classPredictndArray,y_test)
 
-a = ConvNetReal()
+a = ConvNetInterval()
 a.load()
 
 a.evaluateNetConv(1,0.6,3,1,0,1)

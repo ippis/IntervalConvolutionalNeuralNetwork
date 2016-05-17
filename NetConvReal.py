@@ -78,7 +78,7 @@ class ConvNetReal(object):
 			print str(classes)+": "+folderName+" ... OK"
 			totClasses = classes
 			totImages = len(self.x)
-			
+
 			combined = zip(self.x, self.y)
 			random.shuffle(combined)
 			self.x = []
@@ -149,13 +149,13 @@ class ConvNetReal(object):
 			y_test.append(y[k])
 
 		return x_train,x_test,y_train,y_test
-	
+
 	def __verifyTest(self,predictArray,y):
 		correct = 0
 		incorrect = 0
 		for i in xrange(len(y)):
 			#print(str(predictArray[i])+" "+str(y[i]))
-			
+
 			#Verifica porcentagem de acerto
 			if(predictArray[i]==y[i]):
 				correct+=1
@@ -168,7 +168,7 @@ class ConvNetReal(object):
 	#v2 indica as incorretas
 	def __statistics(self,v1,v2):
 		#Total de gestos no conjunto de testes
-		
+
 		print("########################################")
 		print("# ")
 		print("#     Estatisticas de Treinamento")
@@ -176,11 +176,11 @@ class ConvNetReal(object):
 		print("#  Corretas "+str(v1))
 		print("#  Incorretas "+str(v2))
 		pc = 0.0
-		pc = float(v1)/len(self.x)
+		pc = float(v1)/(v1+v2)
 		print("#  % Predicoes corretas: "+str(pc))
-		
+
 		erro = 0.0
-		erro = float(v2)/len(self.x)
+		erro = float(v2)/(v1+v2)
 		print("#  % Erro: "+str(erro))
 		print("########################################")
 
@@ -244,7 +244,7 @@ class ConvNetReal(object):
 		#Free memory
 		x_init = []
 		y_init = []
-		
+
 		self.y = []
 
 		print "... building training model"
@@ -259,4 +259,4 @@ class ConvNetReal(object):
 a = ConvNetReal()
 a.load()
 
-a.evaluateNetConv(3,0.6,3,1,0,2)
+a.evaluateNetConv(5,0.6,3,1,0,2)
