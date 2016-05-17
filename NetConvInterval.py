@@ -3,12 +3,11 @@ import time
 import png
 import subprocess
 import os
+import random
 import numpy as np
 from sklearn.neural_network import MLPClassifier
 
 # DADOS
-x=[]
-y=[]
 x_train = []
 x_test = []
 y_train = []
@@ -24,10 +23,12 @@ totClasses = -1 #Numero de classes diferentes
 percent_train = 0.8
 ################################################################
 
-class ConvNetInterval(object):
+class ConvNetReal(object):
 	def __init__(self):
 		self.w = 0
 		self.h = 0
+		self.x = []
+		self.y = []
 	def divList(self,x,y):
 		aux = []
 		for i in range(len(x)):
@@ -58,7 +59,7 @@ class ConvNetInterval(object):
 
 				elif((classes!=-1)and(len(line)!=1)): #realiza a leitura de cada imagem, presente em cada diretorio
 					#como as classes sao os diretorios, entao cada imagem contem sua classe
-					y.append(classes)
+					self.y.append(classes)
 					imageName = folderName+line
 					imageName = imageName.replace("\n","")
 					rd = png.Reader(imageName)
@@ -72,11 +73,18 @@ class ConvNetInterval(object):
 					#adiciona a imagem ao conjunto de dados, representando dessa maneira uma imagem greyscale
 					aux = []
 					aux.append(newImage)
-					x.append(aux)
+					self.x.append(aux)
 
 			print str(classes)+": "+folderName+" ... OK"
 			totClasses = classes
-			totImages = len(x)
+			totImages = len(self.x)
+			
+			combined = zip(self.x, self.y)
+			random.shuffle(combined)
+			self.x = []
+			self.y = []
+			self.x[:], self.y[:] = zip(*combined)
+
 			print " "
 			print "... load dataset completed"
 
@@ -132,20 +140,56 @@ class ConvNetInterval(object):
 
 			avarage = []
 
-		for i in range(len(x)*learnRate):
-			x_train.append(x[i])
+		for i in range(int(len(x)*learnRate)):
+			x_train.append(answer[i])
 			y_train.append(y[i])
 
 		for k in range(i+1,len(x)):
-			x_test.append(x[k])
+			x_test.append(answer[k])
 			y_test.append(y[k])
 
 		return x_train,x_test,y_train,y_test
+	
+	def __verifyTest(self,predictArray,y):
+		correct = 0
+		incorrect = 0
+		for i in xrange(len(y)):
+			#print(str(predictArray[i])+" "+str(y[i]))
+			
+			#Verifica porcentagem de acerto
+			if(predictArray[i]==y[i]):
+				correct+=1
+			else:
+				incorrect+=1
+
+		self.__statistics(correct,incorrect)
+
+	#v1 indica as corretas
+	#v2 indica as incorretas
+	def __statistics(self,v1,v2):
+		#Total de gestos no conjunto de testes
+		
+		print("########################################")
+		print("# ")
+		print("#     Estatisticas de Treinamento")
+		print("# ")
+		print("#  Corretas "+str(v1))
+		print("#  Incorretas "+str(v2))
+		pc = 0.0
+		pc = float(v1)/len(self.x)
+		print("#  % Predicoes corretas: "+str(pc))
+		
+		erro = 0.0
+		erro = float(v2)/len(self.x)
+		print("#  % Erro: "+str(erro))
+		print("########################################")
+
+
 	# S indentifica o tamanho do passo para a realizacao da convolucao
 	# p consiste no numero de zeros a ser preenchido na borda da imagem (1, adiciona 2 linhas e 2 colunas com zeros no inicio e no fim)
 	# f indica a dimensao do filtro (lembrando que deve ser quadrada)
 
-	def evaluateRealConv(self,n_epochs,learn_rate,f=3,s=1,p=0,totalFilters=1):
+	def evaluateNetConv(self,n_epochs,learn_rate,f=3,s=1,p=0,totalFilters=1):
 		#O filtro e criado a partir de uma tripla (centro da distribuicao, desvio padrao, quantidade de numeros)
 		qtdNumFilter = f**2.0
 		w2 = self.w
@@ -161,8 +205,8 @@ class ConvNetInterval(object):
 		#Fim filtro
 
 
-		x_init = list(x)
-		y_init = list(y)
+		x_init = list(self.x)
+		y_init = list(self.y)
 		for i in xrange(0,n_epochs):
 			#Atualiza para as dimensoes das imagens a serem trabalhadas no momento
 			x_new = []
@@ -175,7 +219,7 @@ class ConvNetInterval(object):
 			w2 = (self.w - f + 2*p)/s + 1
 			h2 = (self.h - f + 2*p)/s + 1
 			#como sao imagens em grayscale entao a dimensao e sempre 1
-			for k in xrange(0,len(x)):
+			for k in xrange(0,len(x_init)):
 				x_aux = []
 
 				#Primeira camada de convolucao
@@ -197,12 +241,22 @@ class ConvNetInterval(object):
 		print "... full connected layer"
 		x_train, x_test, y_train, y_test = self.fullConnectedLayer(x_init,y_init,learn_rate)
 
+		#Free memory
+		x_init = []
+		y_init = []
+		
+		self.y = []
+
 		print "... building training model"
 		clf = MLPClassifier(algorithm='l-bfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
 		print "... training"
 		clf.fit(x_train,y_train)
 
-a = ConvNetInterval()
+		print "... validation"
+		classPredictndArray = clf.predict(x_test)
+		self.__verifyTest(classPredictndArray,y_test)
+
+a = ConvNetReal()
 a.load()
 
-a.evaluateRealConv(1,0.8,5,1,0,1)
+a.evaluateNetConv(3,0.6,3,1,0,2)
