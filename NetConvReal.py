@@ -47,7 +47,7 @@ class ConvNetReal(object):
 			time.sleep(3)
 
 			classes = -1
-			print "... find all data"
+			#print "... find all data"
 			folderName = ""
 			for line in allFiles:
 				#Verifica existencia de um diretorio
@@ -85,12 +85,27 @@ class ConvNetReal(object):
 			self.y = []
 			self.x[:], self.y[:] = zip(*combined)
 
-			print " "
-			print "... load dataset completed"
+			#print " "
+			#print "... load dataset completed"
 
 
 		except ValueError:
 			print "now you should have two png files"
+
+
+	def media(self,x):
+		value = 0.0
+		for i in xrange(len(x)):
+			value += x[i]
+		value = value / len(x)
+
+		vari = 0.0
+		for k in xrange(len(x)):
+			vari+= (x[k] - value)**2
+
+		print value
+		vari = vari/(len(x)-1)
+		print vari
 
 	def ConvLayer(self,x,filter,bias,w2,h2,w1,h1):
 		#w1 e h1 sao assimensoes da saida
@@ -99,7 +114,7 @@ class ConvNetReal(object):
 
 		outputFeatureMap = []
 		filterDimension = int((len(filter)**(1.0/2.0)))
-
+		print str(w2)+"X"+str(h2)
 		value = 0.0
 		aux = []
 		for fil in xrange(0,len(filter)):
@@ -115,9 +130,11 @@ class ConvNetReal(object):
 							for r in xrange(0,filterDimension):
 								value+= x[indexFeatureMap][j + r+(i*w2)+(k*w1)] * filter[fil][k*filterDimension]
 
-						outputFeatureMap.append(value+bias[fil])
+						outputFeatureMap.append(value)
 
 			aux.append(outputFeatureMap)
+
+			self.media(outputFeatureMap)
 			outputFeatureMap = []
 
 		return aux
@@ -189,19 +206,19 @@ class ConvNetReal(object):
 	# p consiste no numero de zeros a ser preenchido na borda da imagem (1, adiciona 2 linhas e 2 colunas com zeros no inicio e no fim)
 	# f indica a dimensao do filtro (lembrando que deve ser quadrada)
 
-	def evaluateNetConv(self,n_epochs,learn_rate,f=3,s=1,p=0,totalFilters=1):
+	def evaluateNetConv(self,fil ,n_epochs,learn_rate,f=3,s=1,p=0,totalFilters=1):
 		#O filtro e criado a partir de uma tripla (centro da distribuicao, desvio padrao, quantidade de numeros)
 		qtdNumFilter = f**2.0
 		w2 = self.w
 		h2 = self.h
 
 		## Responsavel pela criacao dos filtros atraves de uma gaussiana
-		filter = []
+		filter = fil
 		bias = np.random.randint(0,2,2) #varia entre 0 ou 1
-		for i in xrange(0,totalFilters):
-			aux =[]
-			aux = np.random.normal(0,1,qtdNumFilter) #cria o filtro randomicamente com uma distribuicao normal (gaussian)
-			filter.append(aux)
+		#for i in xrange(0,totalFilters):
+		#	aux =[]
+		#	aux = np.random.normal(0,1,qtdNumFilter) #cria o filtro randomicamente com uma distribuicao normal (gaussian)
+		#	filter.append(aux)
 		#Fim filtro
 
 
@@ -211,7 +228,7 @@ class ConvNetReal(object):
 			#Atualiza para as dimensoes das imagens a serem trabalhadas no momento
 			x_new = []
 
-			print "... running epoch "+str(i)
+			#print "... running epoch "+str(i)
 			self.w = w2
 			self.h = h2
 
@@ -224,21 +241,21 @@ class ConvNetReal(object):
 
 				#Primeira camada de convolucao
 				x_aux = self.ConvLayer(x_init[k],filter,bias,w2,h2,self.w,self.h)
-
+				#print x_aux
 				#Nova atualizacao de valores
 				w_aux = (w2 - f + 2*p)/s + 1
 				h_aux = (h2 - f + 2*p)/s + 1
 
 				#Segunda camada de convolucao
 				x_new.append(self.ConvLayer(x_aux,filter,bias,w_aux,h_aux,w2,h2))
-
+				#print x_new[k]
 			#Atualiza para a anova epoca
 			w2 = w_aux
 			h2 = h_aux
 			x_init = list(x_new)
 
 		#Inicio da preparacao para MLP
-		print "... full connected layer"
+		#print "... full connected layer"
 		x_train, x_test, y_train, y_test = self.fullConnectedLayer(x_init,y_init,learn_rate)
 
 		#Free memory
@@ -247,16 +264,11 @@ class ConvNetReal(object):
 
 		self.y = []
 
-		print "... building training model"
+		#print "... building training model"
 		clf = MLPClassifier(algorithm='l-bfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
-		print "... training"
+		#print "... training"
 		clf.fit(x_train,y_train)
 
-		print "... validation"
+		#print "... validation"
 		classPredictndArray = clf.predict(x_test)
 		self.__verifyTest(classPredictndArray,y_test)
-
-a = ConvNetReal()
-a.load()
-
-a.evaluateNetConv(5,0.6,3,1,0,2)
