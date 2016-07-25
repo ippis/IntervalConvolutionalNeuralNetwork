@@ -1,6 +1,5 @@
 .:
 ans2.txt
-ans.txt
 a.py
 building
 car
@@ -12,12 +11,10 @@ filter.py
 hand
 initIntervals.py
 initIntervals.pyc
-NetConvInterval.py
 NetConvInt.py
 NetConvInt.pyc
 NetConvReal.py
 NetConvReal.pyc
-resp.txt
 script.py
 teste.py
 transformImg.py

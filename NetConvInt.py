@@ -77,7 +77,7 @@ class ConvNetInterval(object):
 					aux.append(newImage)
 					self.x.append(aux)
 
-			# print str(classes)+": "+folderName+" ... OK"
+			print str(classes)+": "+folderName+" ... OK"
 			totClasses = classes
 			totImages = len(self.x)
 
@@ -88,7 +88,7 @@ class ConvNetInterval(object):
 			self.x[:], self.y[:] = zip(*combined)
 
 			# print " "
-			# print "... load dataset completed"
+			print "... load dataset completed"
 
 
 		except ValueError:
@@ -105,15 +105,16 @@ class ConvNetInterval(object):
 		for k in xrange(len(x)):
 			vari+= powI((x[k] - value),2)
 
-		print value
-		vari = vari/(len(x)-1)
-		print vari
+		# MOSTRA VALOR INTERVALAR
+		#print value
+		#vari = vari/(len(x)-1)
+		#print vari
 
 	def ConvLayer(self,x,filter,bias,w2,h2,w1,h1):
 		#w1 e h1 sao assimensoes da saida
 		# filtro consiste em um ou mais filtros (uma lista)
 		# x delimita a imagem ou featuremap corrente
-		print str(w2)+"X"+str(h2)
+		#print str(w2)+"X"+str(h2)
 		outputFeatureMap = []
 		filterDimension = int((len(filter)**(1.0/2.0)))
 
@@ -227,20 +228,20 @@ class ConvNetInterval(object):
 	# p consiste no numero de zeros a ser preenchido na borda da imagem (1, adiciona 2 linhas e 2 colunas com zeros no inicio e no fim)
 	# f indica a dimensao do filtro (lembrando que deve ser quadrada)
 
-	def evaluateNetConv(self,fil,n_epochs,learn_rate,f=3,s=1,p=0,totalFilters=1):
+	def evaluateNetConv(self,n_epochs,learn_rate,f=3,s=1,p=0,totalFilters=1):
 		#O filtro e criado a partir de uma tripla (centro da distribuicao, desvio padrao, quantidade de numeros)
 		qtdNumFilter = f**2.0
 		w2 = self.w
 		h2 = self.h
 
 		## Responsavel pela criacao dos filtros atraves de uma gaussiana
-		filter = fil
+		filter = []
 		bias = np.random.randint(0,2,2) #varia entre 0 ou 1
-		#for i in xrange(0,totalFilters):
-		#	aux =[]
-		#	aux = np.random.normal(0,1,qtdNumFilter) #cria o filtro randomicamente com uma distribuicao normal (gaussian)
-		#	aux = initInterval(aux,0.00000000001)
-		#	filter.append(aux)
+		for i in xrange(0,totalFilters):
+			aux =[]
+			aux = np.random.normal(0,1,qtdNumFilter) #cria o filtro randomicamente com uma distribuicao normal (gaussian)
+			aux = initInterval(aux,0.00000000001)
+			filter.append(aux)
 		#Fim filtro
 
 
@@ -250,7 +251,7 @@ class ConvNetInterval(object):
 			#Atualiza para as dimensoes das imagens a serem trabalhadas no momento
 			x_new = []
 
-			# print "... running epoch "+str(i)
+			print "... running epoch "+str(i)
 			self.w = w2
 			self.h = h2
 
@@ -279,7 +280,7 @@ class ConvNetInterval(object):
 		#Inicio da preparacao para MLP
 		x_new = []
 
-		# print "... full connected layer"
+		print "... full connected layer"
 		x_train, x_test, y_train, y_test = self.fullConnectedLayer(x_init,y_init,learn_rate)
 		#Free memory
 		x_init = []
@@ -287,15 +288,20 @@ class ConvNetInterval(object):
 
 		self.y = []
 
-		# print "... calculate ponto medio training set"
+		print "... calculate ponto medio training set"
 		x_train = self.__calculatePontoMedio(x_train)
 
-		# print "... building training model"
+		print "... building training model"
 		clf = MLPClassifier(algorithm='l-bfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
-		# print "... training"
+		print "... training"
 		clf.fit(x_train,y_train)
 
-		# print "... validation"
+		print "... validation"
 		x_test = self.__calculatePontoMedio(x_test)
 		classPredictndArray = clf.predict(x_test)
 		self.__verifyTest(classPredictndArray,y_test)
+
+
+a = ConvNetInterval()
+a.load()
+a.evaluateNetConv(1,0.6,3,1,0,1)
