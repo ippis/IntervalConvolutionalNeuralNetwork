@@ -70,7 +70,7 @@ class ConvNetInterval(object):
 					self.w, self.h, pixels, metadata = rd.read_flat()
 					newImage = []
 					for i in range(0,len(pixels),2):
-						newImage.append(IReal(pixels[i]))
+						newImage.append(pixels[i])
 
 					#adiciona a imagem ao conjunto de dados, representando dessa maneira uma imagem greyscale
 					aux = []
