@@ -6,6 +6,7 @@ import os
 import random
 import numpy as np
 from initIntervals import *
+from IntervalImage import *
 from Erros import *
 from sklearn.neural_network import MLPClassifier
 
@@ -68,13 +69,15 @@ class ConvNetInterval(object):
 
 					#responsavel por pegar todas as informacoes a respeito da imagem, inclusive cada pixel
 					self.w, self.h, pixels, metadata = rd.read_flat()
+					imageInt = imageInterval(self.w,self.h)
 					newImage = []
 					for i in range(0,len(pixels),2):
 						newImage.append(pixels[i])
 
+
 					#adiciona a imagem ao conjunto de dados, representando dessa maneira uma imagem greyscale
 					aux = []
-					aux.append(newImage)
+					aux.append(imageInt.neighborhood8(newImage))
 					self.x.append(aux)
 
 			print str(classes)+": "+folderName+" ... OK"
