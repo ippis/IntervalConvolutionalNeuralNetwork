@@ -168,17 +168,15 @@ class IntervalImage():
 
                 min,max = self.__minAndMax(neighborhood)
                 imageInterval.append(IReal(min,max))
-                mini.append(min)
-                maxi.append(max)
+                #mini.append(min)
+                #maxi.append(max)
 
-        self.__createIntervalImage(mini,maxi)
+        #self.__createIntervalImage(mini,maxi)
         return imageInterval
 
 
     def __minAndMax(self,neighborhood):
         neighborhood.sort()
-
-
         return neighborhood[0],neighborhood[len(neighborhood)-1]
 
     def __createIntervalImage(self,min,max):
@@ -189,19 +187,3 @@ class IntervalImage():
         img2 = Image.new('L', (512,512))
         img2.putdata(max)
         img2.save('maxImage.png')
-
-
-
-
-rd = png.Reader("lena.png")
-
-
-w, h, pixels, metadata = rd.read_flat()
-a = IntervalImage(w,h)
-print w
-print h
-newImage = []
-for i in range(0,len(pixels)):
-	newImage.append(pixels[i])
-
-a.neighborhood8(newImage)

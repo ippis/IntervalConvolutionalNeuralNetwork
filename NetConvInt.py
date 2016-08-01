@@ -69,7 +69,7 @@ class ConvNetInterval(object):
 
 					#responsavel por pegar todas as informacoes a respeito da imagem, inclusive cada pixel
 					self.w, self.h, pixels, metadata = rd.read_flat()
-					imageInt = imageInterval(self.w,self.h)
+					imageInt = IntervalImage(self.w,self.h)
 					newImage = []
 					for i in range(0,len(pixels),2):
 						newImage.append(pixels[i])
@@ -77,6 +77,7 @@ class ConvNetInterval(object):
 
 					#adiciona a imagem ao conjunto de dados, representando dessa maneira uma imagem greyscale
 					aux = []
+					
 					aux.append(imageInt.neighborhood8(newImage))
 					self.x.append(aux)
 
