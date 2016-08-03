@@ -1,7 +1,7 @@
 #Librarys
 import png
 from initIntervals import *
-
+import math
 from PIL import Image
 
 
@@ -65,7 +65,7 @@ class IntervalImage():
                     None
 
 
-                min,max = self.__minAndMax(neighborhood)
+                min,max = self.__distNeighborhood(neighborhood)
                 imageInterval.append(IReal(min,max))
         #        mini.append(min)
         #        maxi.append(max)
@@ -166,18 +166,31 @@ class IntervalImage():
                 except IndexError:
                     None
 
-                min,max = self.__minAndMax(neighborhood)
+                min,max = self.__distNeighborhood(neighborhood)
                 imageInterval.append(IReal(min,max))
-                #mini.append(min)
-                #maxi.append(max)
+                mini.append(min)
+                maxi.append(max)
 
-        #self.__createIntervalImage(mini,maxi)
+        self.__createIntervalImage(mini,maxi)
         return imageInterval
 
 
-    def __minAndMax(self,neighborhood):
-        neighborhood.sort()
-        return neighborhood[0],neighborhood[len(neighborhood)-1]
+    def __distNeighborhood(self,neighborhood):
+
+        pixel = neighborhood[0] #PIXEL INICIAL
+
+        dist = pixel
+        for viz in neighborhood:
+            aux = math.fabs(pixel - viz)
+            if(aux!=0 and aux < dist):
+                dist = aux
+            aux = 0
+
+
+        inf = pixel-dist
+        sup = pixel+dist
+        #print str(pixel)+" "+str(inf)+" "+str(sup)
+        return inf,sup
 
     def __createIntervalImage(self,min,max):
         img = Image.new('L', (512,512))
@@ -187,3 +200,17 @@ class IntervalImage():
         img2 = Image.new('L', (512,512))
         img2.putdata(max)
         img2.save('maxImage.png')
+
+
+rd = png.Reader("lena.png")
+
+
+w, h, pixels, metadata = rd.read_flat()
+a = IntervalImage(w,h)
+print w
+print h
+newImage = []
+for i in range(len(pixels)):
+	newImage.append(pixels[i])
+
+a.neighborhood8(newImage)

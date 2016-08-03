@@ -6,7 +6,6 @@ import os
 import random
 import numpy as np
 from initIntervals import *
-from IntervalImage import *
 from Erros import *
 from sklearn.neural_network import MLPClassifier
 
@@ -69,16 +68,13 @@ class ConvNetInterval(object):
 
 					#responsavel por pegar todas as informacoes a respeito da imagem, inclusive cada pixel
 					self.w, self.h, pixels, metadata = rd.read_flat()
-					imageInt = IntervalImage(self.w,self.h)
 					newImage = []
 					for i in range(0,len(pixels),2):
-						newImage.append(pixels[i])
-
+						newImage.append(IReal(pixels[i]))
 
 					#adiciona a imagem ao conjunto de dados, representando dessa maneira uma imagem greyscale
 					aux = []
-
-					aux.append(imageInt.neighborhood8(newImage))
+					aux.append(newImage)
 					self.x.append(aux)
 
 			print str(classes)+": "+folderName+" ... OK"
@@ -92,7 +88,7 @@ class ConvNetInterval(object):
 			#self.x[:], self.y[:] = zip(*combined)
 
 			# print " "
-			print "... load dataset completed"
+			# print "... load dataset completed"
 
 
 		except ValueError:
@@ -109,22 +105,31 @@ class ConvNetInterval(object):
 		for k in xrange(len(x)):
 			vari+= powI((x[k] - value),2)
 
-		# MOSTRA VALOR INTERVALAR
-		#print value
-		#vari = vari/(len(x)-1)
-		#print vari
+		print value
+		vari = vari/(len(x)-1)
+		print vari
 
-	def ConvLayer(self,x,filter,bias,w2,h2,w1,h1):
+	def ConvLayer(self,x,filter,bias,w2,h2,w1,h1,file,answer):
 		#w1 e h1 sao assimensoes da saida
 		# filtro consiste em um ou mais filtros (uma lista)
 		# x delimita a imagem ou featuremap corrente
-		#print str(w2)+"X"+str(h2)
+		print str(w2)+"X"+str(h2)
 		outputFeatureMap = []
 		filterDimension = int((len(filter)**(1.0/2.0)))
 
+		arq1 = open(answer+"A1", 'a')
+		arq2 = open(answer+"R1", 'a')
+		arq3 = open(answer+"A2", 'a')
+		arq4 = open(answer+"R2", 'a')
+		fileNumbers = open(answer+"NUM", 'a')
 		value = 0.0
+
 		aux = []
 		for fil in xrange(0,len(filter)):
+			absoluto1 = 0.0
+			absoluto2 = 0.0
+			relativo = 0.0
+			relativo2 = 0.0
 			#Serve para variar entre os feature maps de uma imagem
 			for indexFeatureMap in xrange(0,len(x)):
 				#Para criar um feature map exatamente do valor correto tanto i quanto j, so iram variar para as posicoes que estarao criando
@@ -135,12 +140,32 @@ class ConvNetInterval(object):
 						for k in xrange(0,filterDimension):
 
 							for r in xrange(0,filterDimension):
-								value+= x[indexFeatureMap][j + r+(i*w2)+(k*w1)] * filter[fil][k*filterDimension]
+								value+= (x[indexFeatureMap][j + r+(i*w2)+(k*w1)] * filter[fil][k*filterDimension])
 
-						outputFeatureMap.append(value)
+							outputFeatureMap.append(value)
+							a = float(file.pop(0))
+							
+							fileNumbers.write(str(a)+";"+str(value.inf)+";"+str(value.sup)+"\n")
+
+							aux1,aux2 =  absolutError(a,value)
+							absoluto1 += aux1
+							absoluto2 += aux2
+							aux3,aux4 = relativeError(a,value)
+							relativo += aux3
+							relativo2 += aux4
+
+			absoluto1 = absoluto1 / len(outputFeatureMap)
+			absoluto2 = absoluto2 / len(outputFeatureMap)
+			relativo = relativo / len(outputFeatureMap)
+			relativo2 = relativo2 / len(outputFeatureMap)
+			arq1.write(str(absoluto1)+"\n")
+			arq3.write(str(absoluto2)+"\n")
+			arq2.write(str(relativo)+"\n")
+			arq4.write(str(relativo2)+"\n")
+
 
 			aux.append(outputFeatureMap)
-			self.media(outputFeatureMap)
+			#self.media(outputFeatureMap)
 			outputFeatureMap = []
 
 		return aux
@@ -232,20 +257,23 @@ class ConvNetInterval(object):
 	# p consiste no numero de zeros a ser preenchido na borda da imagem (1, adiciona 2 linhas e 2 colunas com zeros no inicio e no fim)
 	# f indica a dimensao do filtro (lembrando que deve ser quadrada)
 
-	def evaluateNetConv(self,n_epochs,learn_rate,f=3,s=1,p=0,totalFilters=1):
+	def evaluateNetConv(self,fil,n_epochs,learn_rate,nameFile,f=3,s=1,p=0,totalFilters=1):
 		#O filtro e criado a partir de uma tripla (centro da distribuicao, desvio padrao, quantidade de numeros)
 		qtdNumFilter = f**2.0
 		w2 = self.w
 		h2 = self.h
 
+		#Leitura para geracao dos erros absolutos e cada imagem
+		arq = open(nameFile, 'r')
+		texto = arq.readlines()
 		## Responsavel pela criacao dos filtros atraves de uma gaussiana
-		filter = []
+		filter = fil
 		bias = np.random.randint(0,2,2) #varia entre 0 ou 1
-		for i in xrange(0,totalFilters):
-			aux =[]
-			aux = np.random.normal(0,1,qtdNumFilter) #cria o filtro randomicamente com uma distribuicao normal (gaussian)
-			aux = initInterval(aux,0.00000000001)
-			filter.append(aux)
+		#for i in xrange(0,totalFilters):
+		#	aux =[]
+		#	aux = np.random.normal(0,1,qtdNumFilter) #cria o filtro randomicamente com uma distribuicao normal (gaussian)
+		#	aux = initInterval(aux,0.00000000001)
+		#	filter.append(aux)
 		#Fim filtro
 
 
@@ -255,7 +283,7 @@ class ConvNetInterval(object):
 			#Atualiza para as dimensoes das imagens a serem trabalhadas no momento
 			x_new = []
 
-			print "... running epoch "+str(i)
+			# print "... running epoch "+str(i)
 			self.w = w2
 			self.h = h2
 
@@ -267,14 +295,14 @@ class ConvNetInterval(object):
 				x_aux = []
 
 				#Primeira camada de convolucao
-				x_aux = self.ConvLayer(x_init.pop(0),filter,bias,w2,h2,self.w,self.h)
+				x_aux = self.ConvLayer(x_init.pop(0),filter,bias,w2,h2,self.w,self.h,texto,str(i)+str(0))
 
 				#Nova atualizacao de valores
 				w_aux = (w2 - f + 2*p)/s + 1
 				h_aux = (h2 - f + 2*p)/s + 1
 
 				#Segunda camada de convolucao
-				x_new.append(self.ConvLayer(x_aux,filter,bias,w_aux,h_aux,w2,h2))
+				x_new.append(self.ConvLayer(x_aux,filter,bias,w_aux,h_aux,w2,h2,texto,str(i)+str(1)))
 
 			#Atualiza para a anova epoca
 			w2 = w_aux
@@ -284,7 +312,7 @@ class ConvNetInterval(object):
 		#Inicio da preparacao para MLP
 		x_new = []
 
-		print "... full connected layer"
+		# print "... full connected layer"
 		x_train, x_test, y_train, y_test = self.fullConnectedLayer(x_init,y_init,learn_rate)
 		#Free memory
 		x_init = []
@@ -292,20 +320,15 @@ class ConvNetInterval(object):
 
 		self.y = []
 
-		print "... calculate ponto medio training set"
+		# print "... calculate ponto medio training set"
 		x_train = self.__calculatePontoMedio(x_train)
 
-		print "... building training model"
+		# print "... building training model"
 		clf = MLPClassifier(algorithm='l-bfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
-		print "... training"
+		# print "... training"
 		clf.fit(x_train,y_train)
 
-		print "... validation"
+		# print "... validation"
 		x_test = self.__calculatePontoMedio(x_test)
 		classPredictndArray = clf.predict(x_test)
 		self.__verifyTest(classPredictndArray,y_test)
-
-
-a = ConvNetInterval()
-a.load()
-a.evaluateNetConv(1,0.6,3,1,0,1)

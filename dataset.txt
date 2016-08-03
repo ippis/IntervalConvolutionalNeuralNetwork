@@ -1,6 +1,7 @@
 .:
 ans2.txt
 a.py
+arq1.txt
 building
 car
 dataset.txt
@@ -14,10 +15,16 @@ initIntervals.pyc
 IntervalImage.py
 IntervalImage.pyc
 lena.png
+maxImage.png
+minImage.png
 NetConvInt.py
 NetConvInt.pyc
+NetConvIntScript.py
+NetConvIntScript.pyc
 NetConvReal.py
 NetConvReal.pyc
+NetConvRealScript.py
+NetConvRealScript.pyc
 readme.txt
 script.py
 teste.py
