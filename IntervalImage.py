@@ -179,16 +179,19 @@ class IntervalImage():
 
         pixel = neighborhood[0] #PIXEL INICIAL
 
-        dist = pixel
+        dist = float(pixel)
         for viz in neighborhood:
-            aux = math.fabs(pixel - viz)
+            aux = (math.fabs(pixel - float(viz)))/2
             if(aux!=0 and aux < dist):
                 dist = aux
             aux = 0
 
+        inf = pixel
+        sup = pixel
 
-        inf = pixel-dist
-        sup = pixel+dist
+        if (dist != float(pixel)):
+            inf = pixel-dist if (pixel - dist) >= 0 else 0
+            sup = pixel+dist if (pixel + dist) <= 255 else 255
         #print str(pixel)+" "+str(inf)+" "+str(sup)
         return inf,sup
 
@@ -200,17 +203,3 @@ class IntervalImage():
         img2 = Image.new('L', (512,512))
         img2.putdata(max)
         img2.save('maxImage.png')
-
-
-rd = png.Reader("lena.png")
-
-
-w, h, pixels, metadata = rd.read_flat()
-a = IntervalImage(w,h)
-print w
-print h
-newImage = []
-for i in range(len(pixels)):
-	newImage.append(pixels[i])
-
-a.neighborhood8(newImage)

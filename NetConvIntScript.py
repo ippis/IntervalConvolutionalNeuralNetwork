@@ -8,6 +8,7 @@ import numpy as np
 from initIntervals import *
 from Erros import *
 from sklearn.neural_network import MLPClassifier
+from IntervalImage import *
 
 # DADOS
 x_train = []
@@ -68,13 +69,16 @@ class ConvNetInterval(object):
 
 					#responsavel por pegar todas as informacoes a respeito da imagem, inclusive cada pixel
 					self.w, self.h, pixels, metadata = rd.read_flat()
+
+					imgInterval = IntervalImage(self.w,self.h)
 					newImage = []
 					for i in range(0,len(pixels),2):
-						newImage.append(IReal(pixels[i]))
+						newImage.append(pixels[i])
 
 					#adiciona a imagem ao conjunto de dados, representando dessa maneira uma imagem greyscale
 					aux = []
-					aux.append(newImage)
+					aux.append(imgInterval.neighborhood8(newImage))
+
 					self.x.append(aux)
 
 			print str(classes)+": "+folderName+" ... OK"
@@ -118,9 +122,9 @@ class ConvNetInterval(object):
 		filterDimension = int((len(filter)**(1.0/2.0)))
 
 		arq1 = open(answer+"A1", 'a')
-		arq2 = open(answer+"R1", 'a')
+		#arq2 = open(answer+"R1", 'a')
 		arq3 = open(answer+"A2", 'a')
-		arq4 = open(answer+"R2", 'a')
+		#arq4 = open(answer+"R2", 'a')
 		fileNumbers = open(answer+"NUM", 'a')
 		value = 0.0
 
@@ -128,8 +132,8 @@ class ConvNetInterval(object):
 		for fil in xrange(0,len(filter)):
 			absoluto1 = 0.0
 			absoluto2 = 0.0
-			relativo = 0.0
-			relativo2 = 0.0
+			#relativo = 0.0
+			#relativo2 = 0.0
 			#Serve para variar entre os feature maps de uma imagem
 			for indexFeatureMap in xrange(0,len(x)):
 				#Para criar um feature map exatamente do valor correto tanto i quanto j, so iram variar para as posicoes que estarao criando
@@ -144,24 +148,24 @@ class ConvNetInterval(object):
 
 							outputFeatureMap.append(value)
 							a = float(file.pop(0))
-							
+
 							fileNumbers.write(str(a)+";"+str(value.inf)+";"+str(value.sup)+"\n")
 
 							aux1,aux2 =  absolutError(a,value)
 							absoluto1 += aux1
 							absoluto2 += aux2
-							aux3,aux4 = relativeError(a,value)
-							relativo += aux3
-							relativo2 += aux4
+							#aux3,aux4 = relativeError(a,value)
+							#relativo += aux3
+							#relativo2 += aux4
 
 			absoluto1 = absoluto1 / len(outputFeatureMap)
 			absoluto2 = absoluto2 / len(outputFeatureMap)
-			relativo = relativo / len(outputFeatureMap)
-			relativo2 = relativo2 / len(outputFeatureMap)
+			#relativo = relativo / len(outputFeatureMap)
+			#relativo2 = relativo2 / len(outputFeatureMap)
 			arq1.write(str(absoluto1)+"\n")
 			arq3.write(str(absoluto2)+"\n")
-			arq2.write(str(relativo)+"\n")
-			arq4.write(str(relativo2)+"\n")
+			#arq2.write(str(relativo)+"\n")
+			#arq4.write(str(relativo2)+"\n")
 
 
 			aux.append(outputFeatureMap)

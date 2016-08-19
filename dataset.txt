@@ -15,8 +15,6 @@ initIntervals.pyc
 IntervalImage.py
 IntervalImage.pyc
 lena.png
-maxImage.png
-minImage.png
 NetConvInt.py
 NetConvInt.pyc
 NetConvIntScript.py
