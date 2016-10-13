@@ -16,6 +16,7 @@ from NetConvIntScript import *
 aux = np.random.normal(0,1,9)
 filter = []
 filter.append(aux)
+print filter
 
 print "CONV EPOCH = 1 e FILTER = 1"
 for i in xrange(1):
