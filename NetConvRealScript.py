@@ -219,7 +219,8 @@ class ConvNetReal(object):
 		#	filter.append(aux)
 		#Fim filtro
 
-
+		w_aux = 0.0
+		h_aux = 0.0
 		x_init = list(self.x)
 		y_init = list(self.y)
 		for i in xrange(0,n_epochs):
@@ -264,7 +265,7 @@ class ConvNetReal(object):
 		self.y = []
 
 		#print "... building training model"
-		clf = MLPClassifier(algorithm='l-bfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+		clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
 		#print "... training"
 		clf.fit(x_train,y_train)
 

@@ -41,6 +41,12 @@ filter.append(initInterval(aux,0.00000000001))
 
 for i in xrange(1):
         b = ConvNetInterval()
-        b.load()
+        b.load(True,1)
+        b.evaluateNetConv(filter,1,0.6,"arq1.txt",3,1,0,1)
+        b = None
+
+for i in xrange(1):
+        b = ConvNetInterval()
+        b.load(False,1)
         b.evaluateNetConv(filter,1,0.6,"arq1.txt",3,1,0,1)
         b = None

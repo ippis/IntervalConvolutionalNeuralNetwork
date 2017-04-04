@@ -103,7 +103,7 @@ class ConvNetReal(object):
 		for k in xrange(len(x)):
 			vari+= (x[k] - value)**2
 
-		
+
 
 	def ConvLayer(self,x,filter,bias,w2,h2,w1,h1):
 		#w1 e h1 sao assimensoes da saida
@@ -262,7 +262,7 @@ class ConvNetReal(object):
 		self.y = []
 
 		#print "... building training model"
-		clf = MLPClassifier(algorithm='l-bfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+		clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
 		#print "... training"
 		clf.fit(x_train,y_train)
 

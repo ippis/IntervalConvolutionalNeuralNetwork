@@ -9,6 +9,7 @@ from initIntervals import *
 from Erros import *
 from sklearn.neural_network import MLPClassifier
 from IntervalImage import *
+from Normalization import *
 
 # DADOS
 x_train = []
@@ -37,7 +38,8 @@ class ConvNetInterval(object):
 		for i in range(len(x)):
 			aux.append(x[i]/y)
 		return aux
-	def load(self):
+
+	def load(self,method,qtdFatias):
 		try:
 			pathFiles = "dataset.txt"
 			fileProcess = open(pathFiles,'w')
@@ -69,30 +71,38 @@ class ConvNetInterval(object):
 
 					#responsavel por pegar todas as informacoes a respeito da imagem, inclusive cada pixel
 					self.w, self.h, pixels, metadata = rd.read_flat()
-
-					imgInterval = IntervalImage(self.w,self.h)
+					imageInt = IntervalImage(self.w,self.h)
 					newImage = []
 					for i in range(0,len(pixels),2):
 						newImage.append(pixels[i])
 
+
 					#adiciona a imagem ao conjunto de dados, representando dessa maneira uma imagem greyscale
 					aux = []
-					aux.append(imgInterval.neighborhood8(newImage))
-
+					if(method):
+						aux.append(imageInt.neighborhood8(newImage))
+					else:
+						aux.append(imageInt.neighborhood4(newImage))
 					self.x.append(aux)
 
 			print str(classes)+": "+folderName+" ... OK"
 			totClasses = classes
 			totImages = len(self.x)
 
-			#combined = zip(self.x, self.y)
+
+			if(qtdFatias>1):
+
+				auxX,auxY = self.fatiamento(self.x,self.y,qtdFatias)
+
+
+			#combined = zip(auxX, auxY)
 			#random.shuffle(combined)
 			#self.x = []
 			#self.y = []
 			#self.x[:], self.y[:] = zip(*combined)
 
 			# print " "
-			# print "... load dataset completed"
+			print "... load dataset completed"
 
 
 		except ValueError:
@@ -117,7 +127,7 @@ class ConvNetInterval(object):
 		#w1 e h1 sao assimensoes da saida
 		# filtro consiste em um ou mais filtros (uma lista)
 		# x delimita a imagem ou featuremap corrente
-		print str(w2)+"X"+str(h2)
+		#print str(w2)+"X"+str(h2)
 		outputFeatureMap = []
 		filterDimension = int((len(filter)**(1.0/2.0)))
 
@@ -181,7 +191,7 @@ class ConvNetInterval(object):
 		y_train = []
 		x_test =[]
 		y_test = []
-		tam = len(x[0])
+
 		for i in xrange(len(x)):
 			avarage = [0.0]*len(x[0][0])
 			avarage = initInterval(avarage,0.0)
@@ -195,16 +205,15 @@ class ConvNetInterval(object):
 			answer.append(self.divList(avarage,tam))
 
 			avarage = []
+		auxx = 0
 
 		for i in range(int(len(answer)*learnRate)):
 			x_train.append(answer.pop(0))
 			y_train.append(y[i])
+			auxx=i
 
-
-
-		for k in range(i+1,(len(x_train)+len(answer))):
+		for k in range(auxx+1,(len(x_train)+len(answer))):
 			y_test.append(y[k])
-
 
 		return x_train,answer,y_train,y_test
 
@@ -283,6 +292,8 @@ class ConvNetInterval(object):
 
 		x_init = list(self.x)
 		y_init = list(self.y)
+		w_aux = 0.0
+		h_aux = 0.0
 		for i in xrange(0,n_epochs):
 			#Atualiza para as dimensoes das imagens a serem trabalhadas no momento
 			x_new = []
@@ -327,12 +338,13 @@ class ConvNetInterval(object):
 		# print "... calculate ponto medio training set"
 		x_train = self.__calculatePontoMedio(x_train)
 
-		# print "... building training model"
-		clf = MLPClassifier(algorithm='l-bfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
-		# print "... training"
-		clf.fit(x_train,y_train)
+		clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1)
+		#print ("... training : Fatia"+str(i)
 
-		# print "... validation"
-		x_test = self.__calculatePontoMedio(x_test)
+		x_train = Normalization.minMaxEqualizer(x_train)
+		clf.fit(x_train,y_train)
+		#print "... validation"
+
+		x_test = Normalization.minMaxEqualizer(x_test)
 		classPredictndArray = clf.predict(x_test)
 		self.__verifyTest(classPredictndArray,y_test)
