@@ -191,6 +191,7 @@ class ConvNetInterval(object):
 		y_train = []
 		x_test =[]
 		y_test = []
+		tam = len(x[0])
 
 		for i in xrange(len(x)):
 			avarage = [0.0]*len(x[0][0])
