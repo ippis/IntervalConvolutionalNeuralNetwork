@@ -123,7 +123,7 @@ class ConvNetInterval(object):
 		vari = vari/(len(x)-1)
 		print vari
 
-	def ConvLayer(self,x,filter,bias,w2,h2,w1,h1,file,answer):
+	def ConvLayer(self,x,filter,bias,w2,h2,w1,h1,file,answer,ansfile):
 		#w1 e h1 sao assimensoes da saida
 		# filtro consiste em um ou mais filtros (uma lista)
 		# x delimita a imagem ou featuremap corrente
@@ -131,11 +131,11 @@ class ConvNetInterval(object):
 		outputFeatureMap = []
 		filterDimension = int((len(filter)**(1.0/2.0)))
 
-		arq1 = open(answer+"A1", 'a')
+		arq1 = open(answer+"A1-"+ansfile, 'a')
 		#arq2 = open(answer+"R1", 'a')
-		arq3 = open(answer+"A2", 'a')
+		arq3 = open(answer+"A2-"+ansfile, 'a')
 		#arq4 = open(answer+"R2", 'a')
-		fileNumbers = open(answer+"NUM", 'a')
+		fileNumbers = open(answer+"NUM-"+ansfile, 'a')
 		value = 0.0
 
 		aux = []
@@ -271,7 +271,7 @@ class ConvNetInterval(object):
 	# p consiste no numero de zeros a ser preenchido na borda da imagem (1, adiciona 2 linhas e 2 colunas com zeros no inicio e no fim)
 	# f indica a dimensao do filtro (lembrando que deve ser quadrada)
 
-	def evaluateNetConv(self,fil,n_epochs,learn_rate,nameFile,f=3,s=1,p=0,totalFilters=1):
+	def evaluateNetConv(self,fil,n_epochs,learn_rate,nameFile,ansfile,f=3,s=1,p=0,totalFilters=1):
 		#O filtro e criado a partir de uma tripla (centro da distribuicao, desvio padrao, quantidade de numeros)
 		qtdNumFilter = f**2.0
 		w2 = self.w
@@ -311,14 +311,14 @@ class ConvNetInterval(object):
 				x_aux = []
 
 				#Primeira camada de convolucao
-				x_aux = self.ConvLayer(x_init.pop(0),filter,bias,w2,h2,self.w,self.h,texto,str(i)+str(0))
+				x_aux = self.ConvLayer(x_init.pop(0),filter,bias,w2,h2,self.w,self.h,texto,str(i)+str(0),ansfile)
 
 				#Nova atualizacao de valores
 				w_aux = (w2 - f + 2*p)/s + 1
 				h_aux = (h2 - f + 2*p)/s + 1
 
 				#Segunda camada de convolucao
-				x_new.append(self.ConvLayer(x_aux,filter,bias,w_aux,h_aux,w2,h2,texto,str(i)+str(1)))
+				x_new.append(self.ConvLayer(x_aux,filter,bias,w_aux,h_aux,w2,h2,texto,str(i)+str(1)),ansfile)
 
 			#Atualiza para a anova epoca
 			w2 = w_aux
