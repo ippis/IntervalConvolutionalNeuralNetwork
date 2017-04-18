@@ -25,6 +25,12 @@ for i in xrange(1):
     a.evaluateNetConv(filter,1,0.6,"arq1.txt",3,1,0,1)
     a = None
 
+for i in xrange(1):
+    a = ConvNetReal();
+    a.load()
+    a.evaluateNetConv(filter,1,0.6,"arq2.txt",3,1,0,1)
+    a = None
+
 
 print "--------------------------------------------------------------------------"
 print "CONV EPOCH = 1 e FILTER = 2"
@@ -48,5 +54,5 @@ for i in xrange(1):
 for i in xrange(1):
         b = ConvNetInterval()
         b.load(False,1)
-        b.evaluateNetConv(filter,1,0.6,"arq1.txt","4Viz",3,1,0,1)
+        b.evaluateNetConv(filter,1,0.6,"arq2.txt","4Viz",3,1,0,1)
         b = None
